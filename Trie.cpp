@@ -1,122 +1,127 @@
-#include<bits/stdc++.h>
+#include <bits/stdc++.h>
 using namespace std;
 
-class TrieNode{
-   public:
-     unordered_map<char,TrieNode*> children;
-     bool isEnd;
+class TrieNode
+{
+public:
+    unordered_map<char, TrieNode *> children;
+    bool isEnd;
 
-     TrieNode(){
-          isEnd=false;
-     }     
+    TrieNode()
+    {
+        isEnd = false;
+    }
 };
 
-class Trie{
- public:      
-   TrieNode *root;    
-   Trie(){        
+class Trie
+{
+public:
+    TrieNode *root;
+
+    Trie()
+    {
         root = new TrieNode();
-   }
-  
-  void insert(string s);
-  TrieNode* exact_search(string s); 
-  vector<string> pre_search(string s);
+    }
 
+    void insert(string str);
+    TrieNode* exact_search(string str);
+    vector<string> pre_search(string str);
+    
 };
 
+void Trie::insert(string str)
+{
+    TrieNode *current = root;
 
+    for (int i = 0; i < str.size(); ++i)
+    {
+        char ch = str[i];
+        if (current->children.find(ch) != current->children.end())
+        {
+            current = current->children[ch];
+        }
+        else
+        {
+            current->children.insert(make_pair(ch, new TrieNode()));
+            current = current->children[ch];
+        }
+    }
 
-void Trie::insert(string s){
- 
-     TrieNode * current = root;
-
-     for(auto t:s){
-
-          if(current->children.find(t)!=current->children.end())
-                current = current->children[t];
-          
-          else{
-               current->children.insert({t,new TrieNode()});
-          }
-
-     }
-     current->isEnd=true;
+    current->isEnd = true;
 }
 
+TrieNode* Trie::exact_search(string str)
+{
+    TrieNode *current = root;
 
-TrieNode* Trie::exact_search(string s){
-       
-       TrieNode* current = root;
-       
-       auto start = chrono::high_resolution_clock::now();
+    auto start = chrono::high_resolution_clock::now();
+    
+    for (int i = 0; i < str.size(); ++i)
+    {
+        char ch = str[i];
+        if (current->children.find(ch) != current->children.end())
+        {
+            current = current->children[ch];
+        }
+        else
+        {   
+            return NULL;
+        }
+    }
 
-
-       for(auto t:s){
- 
-          if(current->children.find(t)!=current->children.end())
-               current = current->children[t];
-          
-          else
-             return NULL;
-
-       }
     auto stop = chrono::high_resolution_clock::now();
     auto duration = chrono::duration_cast<chrono::nanoseconds>(stop - start);
     cerr << "\033[32m\n"
          << current->isEnd << " results in " << double(duration.count() / double(1000000)) << " ms.\033[0m\n\n";
 
-     
-     return current->isEnd?current:NULL;
+    return current->isEnd ? current : NULL;
 }
 
-void get_all_words(TrieNode* current,vector<string>&res,string s){
-     
-    if(current == NULL) return;
-
-    if(current->isEnd) res.push_back(s);
-    
-    for(auto t:current->children){
-
-        get_all_words(t.second,res,(s+t.first));
-
+void get_words_dfs(TrieNode *current, string pre, vector<string> &results)
+{
+    if (current == NULL)
+    {
+        return;
+    }
+    if (current->isEnd)
+    {
+        results.push_back(pre);
     }
 
+    for (auto i : current->children)
+    {
+        get_words_dfs(i.second, (pre + i.first), results);
+    }
 }
 
+vector<string> Trie::pre_search(string str)
+{
+    auto start = chrono::high_resolution_clock::now();
 
-vector<string> Trie::pre_search(string s){
- 
-     auto start = chrono::high_resolution_clock::now();
+    TrieNode *current = root;
+    vector<string> res;
 
-     TrieNode* current  = root;
+    for (int i = 0; i < str.size(); ++i)
+    {
+        char ch = str[i];
+        if (current->children.find(ch) != current->children.end())
+        {
+            current = current->children[ch];
+        }
+        else
+        {   cout<<"No matching results are found \n";
+            return res;
+        }
+    }
 
-     vector<string> res;
-     
-     for(auto t:s){
-
-           if(current->children.find(t)!=current->children.end())
-                      current = current->children[t];
-         
-           else 
-              {
-                   cout<<"No matching results are found !!!\n";
-                   return res;
-                   
-             }
-     }
-
-    get_all_words(current,res,s);
+    get_words_dfs(current, str, res);
 
     auto stop = chrono::high_resolution_clock::now();
     auto duration = chrono::duration_cast<chrono::nanoseconds>(stop - start);
 
     cerr << "\033[32m\n"
-         << res.size() << " results in " << double(duration.count() / double(1000000)) << " ms.\033[0m\n\n";  
-
+         << res.size() << " results in " << double(duration.count() / double(1000000)) << " ms.\033[0m\n\n";
 
     return res;
-
 }
-
-
 
